@@ -7,9 +7,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"path"
 	"path/filepath"
-	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -70,9 +68,10 @@ var isVerbose bool
 
 // Read config
 func getConfig() (config, error) {
-	_, filename, _, _ := runtime.Caller(0) // = __FILE__
+	currentDir := filepath.Dir(os.Args[0])
+	configPath := filepath.Join(currentDir, ConfigFilename)
 
-	if file, err := ioutil.ReadFile(filepath.Join(path.Dir(filename), ConfigFilename)); err == nil {
+	if file, err := ioutil.ReadFile(configPath); err == nil {
 		var conf config
 		if err := json.Unmarshal(file, &conf); err == nil {
 			return conf, nil
