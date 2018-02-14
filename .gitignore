@@ -1,5 +1,1 @@
-*.swp
-
-rpi-camera-timelapse-go
-
-config.json
+.idea
