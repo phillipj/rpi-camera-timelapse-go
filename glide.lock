@@ -1,0 +1,42 @@
+hash: 49f5b21ce43eb384ff40f0216fce9f0297893d30c3c13fb9a7f807c236f37d75
+updated: 2018-02-14T20:53:01.198266707+01:00
+imports:
+- name: github.com/dropbox/dropbox-sdk-go-unofficial
+  version: 81ac5b288ffc03b166174f520cdc0b227461450e
+  subpackages:
+  - dropbox
+  - dropbox/async
+  - dropbox/file_properties
+  - dropbox/files
+- name: github.com/golang/protobuf
+  version: bbd03ef6da3a115852eaf24c8a1c46aeb39aa175
+  subpackages:
+  - proto
+- name: github.com/meinside/rpi-camera-timelapse-go
+  version: 5132e8faf300d5424377a6d7fe33ddfe9be45f71
+  subpackages:
+  - storage
+- name: github.com/meinside/rpi-tools
+  version: 24dc03e57f746395fad717a9ba24c80b76c5e7aa
+  subpackages:
+  - hardware
+- name: golang.org/x/net
+  version: f5dfe339be1d06f81b22525fe34671ee7d2c8904
+  subpackages:
+  - context
+  - context/ctxhttp
+- name: golang.org/x/oauth2
+  version: 543e37812f10c46c622c9575afd7ad22f22a12ba
+  subpackages:
+  - internal
+- name: google.golang.org/appengine
+  version: 5bee14b453b4c71be47ec1781b0fa61c2ea182db
+  subpackages:
+  - internal
+  - internal/base
+  - internal/datastore
+  - internal/log
+  - internal/remote_api
+  - internal/urlfetch
+  - urlfetch
+testImports: []
