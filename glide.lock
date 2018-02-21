@@ -1,6 +1,37 @@
 hash: 49f5b21ce43eb384ff40f0216fce9f0297893d30c3c13fb9a7f807c236f37d75
-updated: 2018-02-14T20:53:01.198266707+01:00
+updated: 2018-02-21T21:41:21.490815371+01:00
 imports:
+- name: github.com/aws/aws-sdk-go
+  version: 7dd56b090d96bc6c6e7ea106351eb649606fa21b
+  subpackages:
+  - aws
+  - aws/awserr
+  - aws/awsutil
+  - aws/client
+  - aws/client/metadata
+  - aws/corehandlers
+  - aws/credentials
+  - aws/credentials/ec2rolecreds
+  - aws/credentials/endpointcreds
+  - aws/credentials/stscreds
+  - aws/defaults
+  - aws/ec2metadata
+  - aws/endpoints
+  - aws/request
+  - aws/session
+  - aws/signer/v4
+  - internal/sdkrand
+  - internal/shareddefaults
+  - private/protocol
+  - private/protocol/query
+  - private/protocol/query/queryutil
+  - private/protocol/rest
+  - private/protocol/restxml
+  - private/protocol/xml/xmlutil
+  - service/s3
+  - service/s3/s3iface
+  - service/s3/s3manager
+  - service/sts
 - name: github.com/dropbox/dropbox-sdk-go-unofficial
   version: 81ac5b288ffc03b166174f520cdc0b227461450e
   subpackages:
@@ -8,12 +39,16 @@ imports:
   - dropbox/async
   - dropbox/file_properties
   - dropbox/files
+- name: github.com/go-ini/ini
+  version: 32e4be5f41bb918afb6e37c07426e2ddbcb6647e
 - name: github.com/golang/protobuf
   version: bbd03ef6da3a115852eaf24c8a1c46aeb39aa175
   subpackages:
   - proto
+- name: github.com/jmespath/go-jmespath
+  version: c2b33e8439af944379acbdd9c3a5fe0bc44bd8a5
 - name: github.com/meinside/rpi-camera-timelapse-go
-  version: 5132e8faf300d5424377a6d7fe33ddfe9be45f71
+  version: 66f72dc7e1de09300838ecf33eb7f24f0126140f
   subpackages:
   - storage
 - name: github.com/meinside/rpi-tools
@@ -21,7 +56,7 @@ imports:
   subpackages:
   - hardware
 - name: golang.org/x/net
-  version: f5dfe339be1d06f81b22525fe34671ee7d2c8904
+  version: cbe0f9307d0156177f9dd5dc85da1a31abc5f2fb
   subpackages:
   - context
   - context/ctxhttp
