@@ -30,13 +30,15 @@ const (
 )
 
 type config struct {
-	ShootWithinHours     string                 `json:"shoot_within_hours"` // e.g. 13-18
-	ShootIntervalMinutes int                    `json:"shoot_interval_minutes"`
-	ImageWidth           int                    `json:"image_width"`
-	ImageHeight          int                    `json:"image_height"`
-	CameraParams         map[string]interface{} `json:"camera_params"`
-	StorageConfigs       []storage.Config       `json:"storages"`
-	IsVerbose            bool                   `json:"is_verbose"`
+	ShootWithinHours      string                 `json:"shoot_within_hours"` // e.g. 13-18
+	ShootIntervalMinutes  int                    `json:"shoot_interval_minutes"`
+	RemoteIntervalMinutes int                    `json:"remote_config_interval_minutes"`
+	ImageWidth            int                    `json:"image_width"`
+	ImageHeight           int                    `json:"image_height"`
+	CameraParams          map[string]interface{} `json:"camera_params"`
+	StorageConfigs        []storage.Config       `json:"storages"`
+	IsVerbose             bool                   `json:"is_verbose"`
+	RemoteConfigUrl       string                 `json:"remote_config_url"`
 }
 
 // for making sure the camera is not used simultaneously
@@ -65,9 +67,11 @@ var imageWidth, imageHeight int
 var cameraParams map[string]interface{}
 var storageInterfaces []storage.Interface
 var isVerbose bool
+var remoteIntervalMinutes int
+var remoteConfigUrl string
 
 // Read config
-func getConfig() (config, error) {
+func getConfigFromFile() (config, error) {
 	currentDir := filepath.Dir(os.Args[0])
 	configPath := filepath.Join(currentDir, ConfigFilename)
 
@@ -85,66 +89,73 @@ func getConfig() (config, error) {
 
 func init() {
 	// read config
-	if conf, err := getConfig(); err != nil {
+	if conf, err := getConfigFromFile(); err != nil {
 		panic(err)
 	} else {
-		// interval
-		shootIntervalMinutes = conf.ShootIntervalMinutes
-		if shootIntervalMinutes <= 0 {
-			shootIntervalMinutes = DefaultShootIntervalMinutes
-		}
-
-		// shoot within hours: from-to
-		shootWithinHours = interpretWithinHours(conf.ShootWithinHours)
-
-		// image width * height
-		imageWidth = conf.ImageWidth
-		if imageWidth < MinImageWidth {
-			imageWidth = MinImageWidth
-		}
-		imageHeight = conf.ImageHeight
-		if imageHeight < MinImageHeight {
-			imageHeight = MinImageHeight
-		}
-
-		// other camera params
-		cameraParams = conf.CameraParams
-
-		// storage configurations
-		var loaded storage.Interface
-		storageInterfaces = []storage.Interface{}
-		for _, storageConf := range conf.StorageConfigs {
-			switch storageConf.Type {
-			case storage.TypeLocal:
-				loaded = storage.NewLocalStorage(storageConf.Path)
-			case storage.TypeDropbox:
-				loaded = storage.NewDropboxStorage(
-					storageConf.DropboxToken,
-					storageConf.Path)
-			case storage.TypeSmtp:
-				loaded = storage.NewSmtpStorage(
-					storageConf.SmtpEmail,
-					storageConf.SmtpServer,
-					storageConf.SmtpPasswd,
-					storageConf.SmtpRecipients)
-			case storage.TypeS3:
-				loaded = storage.NewS3Storage(storageConf.S3Bucket, storageConf.Path)
-			default:
-				log.Printf("*** Unknown storage type: %s\n", storageConf.Type)
-				continue
-			}
-
-			log.Printf("Storage config loaded: %s\n", storageConf.Type)
-
-			storageInterfaces = append(storageInterfaces, loaded)
-		}
-		if len(storageInterfaces) <= 0 {
-			panic("No storages were configured.")
-		}
-
-		// show verbose messages or not
-		isVerbose = conf.IsVerbose
+		setOptionsFromConfig(conf)
 	}
+}
+
+func setOptionsFromConfig(conf config) {
+	// interval
+	shootIntervalMinutes = conf.ShootIntervalMinutes
+	if shootIntervalMinutes <= 0 {
+		shootIntervalMinutes = DefaultShootIntervalMinutes
+	}
+
+	remoteIntervalMinutes = conf.RemoteIntervalMinutes
+	remoteConfigUrl = conf.RemoteConfigUrl
+
+	// shoot within hours: from-to
+	shootWithinHours = interpretWithinHours(conf.ShootWithinHours)
+
+	// image width * height
+	imageWidth = conf.ImageWidth
+	if imageWidth < MinImageWidth {
+		imageWidth = MinImageWidth
+	}
+	imageHeight = conf.ImageHeight
+	if imageHeight < MinImageHeight {
+		imageHeight = MinImageHeight
+	}
+
+	// other camera params
+	cameraParams = conf.CameraParams
+
+	// storage configurations
+	var loaded storage.Interface
+	storageInterfaces = []storage.Interface{}
+	for _, storageConf := range conf.StorageConfigs {
+		switch storageConf.Type {
+		case storage.TypeLocal:
+			loaded = storage.NewLocalStorage(storageConf.Path)
+		case storage.TypeDropbox:
+			loaded = storage.NewDropboxStorage(
+				storageConf.DropboxToken,
+				storageConf.Path)
+		case storage.TypeSmtp:
+			loaded = storage.NewSmtpStorage(
+				storageConf.SmtpEmail,
+				storageConf.SmtpServer,
+				storageConf.SmtpPasswd,
+				storageConf.SmtpRecipients)
+		case storage.TypeS3:
+			loaded = storage.NewS3Storage(storageConf.S3Bucket, storageConf.Path)
+		default:
+			log.Printf("*** Unknown storage type: %s\n", storageConf.Type)
+			continue
+		}
+
+		log.Printf("Storage config loaded: %s\n", storageConf.Type)
+
+		storageInterfaces = append(storageInterfaces, loaded)
+	}
+	if len(storageInterfaces) <= 0 {
+		panic("No storages were configured.")
+	}
+
+	// show verbose messages or not
+	isVerbose = conf.IsVerbose
 }
 
 // parse 'shoot_within_hours' option
@@ -208,10 +219,21 @@ func capture(req ShootRequest) bool {
 	return result
 }
 
+func createRemoteConfigChannel() <-chan time.Time {
+	if remoteIntervalMinutes > 0 {
+		return time.NewTicker(time.Duration(remoteIntervalMinutes) * time.Minute).C
+	}
+
+	// create a dummy channel that never will fire as remote config interval
+	// has not been configured
+	return make(chan time.Time)
+}
+
 func main() {
 	log.Println("Starting up...")
 
-	timer := time.NewTicker(time.Duration(shootIntervalMinutes) * time.Minute)
+	captureTimer := time.NewTicker(time.Duration(shootIntervalMinutes) * time.Minute)
+	configTimer := createRemoteConfigChannel()
 	quitter := make(chan struct{})
 
 	// catch SIGINT and SIGTERM and terminate gracefully
@@ -232,12 +254,14 @@ func main() {
 	// infinite loop
 	for {
 		select {
-		case <-timer.C:
+		case <-captureTimer.C:
 			capture(ShootRequest{
 				ImageWidth:   imageWidth,
 				ImageHeight:  imageHeight,
 				CameraParams: cameraParams,
 			})
+		case <-configTimer:
+			fetchAndApplyRemoteConfig(remoteConfigUrl, setOptionsFromConfig)
 		case <-quitter:
 			log.Println("Shutting down...")
 			os.Exit(1)

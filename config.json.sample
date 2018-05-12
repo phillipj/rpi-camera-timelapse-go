@@ -1,5 +1,6 @@
 {
 	"shoot_interval_minutes": 1,
+	"remote_config_interval_minutes": 60,
 	"image_width": 1600,
 	"image_height": 1200,
 	"camera_params": {
