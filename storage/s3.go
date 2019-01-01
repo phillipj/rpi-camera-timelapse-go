@@ -4,18 +4,18 @@ import (
 	bt "bytes"
 	"io/ioutil"
 
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"path/filepath"
-	"fmt"
 )
 
 // storage interface for saving files in an S3 bucket
 
 type S3Storage struct {
-	bucket *string
-	path   *string
+	bucket   *string
+	path     *string
 	uploader *s3manager.Uploader
 }
 
