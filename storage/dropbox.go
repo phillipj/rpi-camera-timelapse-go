@@ -39,7 +39,7 @@ func (s *DropboxStorage) Save(filename string, bytes []byte) error {
 
 	_, err := s.client.Upload(&files.CommitInfo{
 		Path:       dst,
-		Mode:       &files.WriteMode{Tagged: dropbox.Tagged{"overwrite"}}, // overwrite
+		Mode:       &files.WriteMode{Tagged: dropbox.Tagged{Tag: "overwrite"}}, // overwrite
 		Autorename: false,
 		Mute:       false,
 	}, reader)
