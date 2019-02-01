@@ -17,7 +17,7 @@ script:
   - (! go fmt ./... 2>&1 | read) || (echo "Code is not properly formatted, remember to use gofmt on all new changes." && exit 1)
   - go vet ./...
   - gox -osarch="linux/arm darwin/amd64" -output="releases/rpi-camera-timelapse-${TRAVIS_TAG}-{{.OS}}-{{.Arch}}" -ldflags "-X main.rev=`git rev-parse --short HEAD` -X main.version=${TRAVIS_TAG}"
-  - ls releases
+  - chmod +x releases/*
 
 deploy:
   provider: releases
