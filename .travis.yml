@@ -5,8 +5,29 @@ go:
 # Force-enable Go modules. This will be unnecessary when Go 1.12 lands.
 env:
   - GO111MODULE=on
+
+before_install:
+  # gox simplifies building for multiple architectures
+  - go get github.com/mitchellh/gox
+
 install:
   - go get
+
 script:
   - (! go fmt ./... 2>&1 | read) || (echo "Code is not properly formatted, remember to use gofmt on all new changes." && exit 1)
   - go vet ./...
+  - gox -osarch="linux/arm" -output="rpi-camera-timelapse" -ldflags "-X main.rev=`git rev-parse --short HEAD` -X main.version=$TRAVIS_TAG"
+
+deploy:
+  provider: releases
+  skip_cleanup: true
+  api_key:
+    secure: "pV6t8qXguFMrMcaRsSZxcoxxDtSiuJrnqaq87gTc8VnJ0QmxL2MIlAqBX5gtpjbv0JXT3es7ZeSxqKhEvErVO9Dev3TVpmNXmfmQsPOyhNoDUjwI7TopvzUpdlDfw313rr33G2inF9hbdoDFT/QlsfhfupKGgCU6vGgSUuyvFsDBU2hhHvI74wUSDJrokOuHhevgCcqnnr7UFY39IX3qfsXDn2GjGNxMqAhV+9bwe+P7yYj7PRt7Ti/YBO5fbZdbb5hteCtR5fDd56lAaf/uAJfIZUbH9hlZnmBEuTalcBWdBEMTobcLCHtsAfTlfgcOa8z1uQmdg2Nyp61ES1mSl23xPedaYGk4BuWljJktAtRrMECq/p97k8E2JtwmtjxR4jrQBX9ACLF2oVn6XwF7jqFEoU5DNMrHOyA7CB8LU+0HiVoCfjzcQFA/TbyN789eLrDaNaoJUmvbQGOzZ0GJJZHwJGShI447ijYw5j9FXE5FhSiH0mB5H7PLqSVxm+vjdgiDxJD2Xg16lv/6mQnn1zEJNsTUfB3iMJ2G97ctjGoSVAIBT0zRUlFvzPbMF2qbOpG2OLBDHi8e2brUgp47CdlFNz+/Q+7DVMVCwu9hKhrfkabIfoK1OMrpHphBBilxYP1rHyGP5ziymTHkvreAU2wMlEvZbwAaAbrmbVqdiDA="
+  file:
+    # The names of the binaries to output, based on the -output template passed to gox.
+    - rpi-camera-timelapse
+  on:
+    # What to repository to build
+    repo: phillipj/rpi-camera-timelapse-go
+    # Only build binaries for tagged commits
+    tags: true
