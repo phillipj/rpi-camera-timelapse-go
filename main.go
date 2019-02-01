@@ -29,6 +29,11 @@ const (
 	MinImageHeight              = 300
 )
 
+// value injected with linker option -X by the build process
+// https://www.atatus.com/blog/golang-auto-build-versioning/
+var rev = "HEAD"
+var version = "LATEST"
+
 type config struct {
 	ShootWithinHours      string                 `json:"shoot_within_hours"` // e.g. 13-18
 	ShootIntervalMinutes  int                    `json:"shoot_interval_minutes"`
@@ -87,7 +92,7 @@ func getConfigFromFile() (config, error) {
 	}
 }
 
-func init() {
+func readConfig() {
 	// read config
 	if conf, err := getConfigFromFile(); err != nil {
 		panic(err)
@@ -230,8 +235,15 @@ func createRemoteConfigChannel() <-chan time.Time {
 }
 
 func main() {
+	optionalFirstArg := os.Args[1]
+	if optionalFirstArg == "version" {
+		fmt.Printf("%s commit: %s\n", version, rev)
+		os.Exit(0)
+	}
+
 	log.Println("Starting up...")
 
+	readConfig()
 	captureTimer := time.NewTicker(time.Duration(shootIntervalMinutes) * time.Minute)
 	configTimer := createRemoteConfigChannel()
 	quitter := make(chan struct{})
